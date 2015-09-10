@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+		<script>
+			function regulate_size() {
+				var BOTTOM_HEIGHT = 150;
+				var SURE_AREA_WIDTH = 100;
+				var QUOTE_AREA_WIDTH = 200;
+				var INDENT_AREA_WIDTH = 200;
+				var wh = window.innerHeight;
+				var ww = window.innerWidth;
+				$('#all').height(wh);
+				$('#top').height(wh - BOTTOM_HEIGHT);
+				$('#bottom').height(BOTTOM_HEIGHT);
+				$('#input_textarea').height(
+					$('#input_panel').height() - $('#input_title').outerHeight(true) - 5)
+				$('#input_textarea').width(
+					$('#input_panel').width() - 10)
+				$('#code_textarea').height(
+					$('#code_panel').height() - $('#input_title').outerHeight(true) - 5)
+				$('#code_textarea').width(
+					$('#code_panel').width() - 10)
+				$('#sure').width(SURE_AREA_WIDTH);
+				$('#quote_opt').width(QUOTE_AREA_WIDTH);
+				$('#indent_opt').width(INDENT_AREA_WIDTH);
+				$('#style_opt').width(ww - QUOTE_AREA_WIDTH - SURE_AREA_WIDTH - INDENT_AREA_WIDTH);
+			}
+
+			function render() {
+				quote_types = {};
+				quote_types['python'] = '\'';
+				quote_types['matlab-cell'] = '\'';
+
+				num_indents = parseInt($("input[name=num_indents]").val());
+				indent_token = ($("#indent_type").val() == 'space' ? ' ' : '\t');
+				
+				if (isNaN(num_indents) || num_indents < 0)
+					indent_text = '    ';
+				else {
+					indent_text = '';
+					for (i = 0; i < num_indents; i++)
+						indent_text += indent_token;
+				}
+
+				lang = $("input[name=style]:checked").val();
+
+				content = $('#input_textarea').val();
+				lines = content.split('\n');
+				for (i = 0; i < lines.length; i++) {
+					if ($("input[name=quote]:checked").val() == 'yes') {
+						quote_type = quote_types[lang];
+						lines[i] = quote_type + lines[i] + quote_type;
+					}
+
+					lines[i] = indent_text + lines[i];
+					if (lang == 'python' || lang == 'c')
+						lines[i] += ',';
+					else if (lang == 'matlab-cell');
+				}
+
+				if (lang == 'python') {
+					lines.unshift('var_name = [');
+					lines.push(']');
+				}
+				else if (lang == 'matlab-cell') {
+					lines.unshift('var_name = {');
+					lines.push('}');
+				}
+				else if (lang == 'c') {
+					lines.unshift('var_name = {');
+					lines.push('}');
+				}
+				
+				$('#code_textarea').val(lines.join('\n'));
+			}
+		</script>
+	</head>
+
+	<body style='margin:0; padding:0; overflow:hidden' onresize="regulate_size()">
+		<div id="all" style="width:100%; height:100%; position: relative">
+			<div id='top' style='width:100%'>
+				<div id="input_panel" style="width:50%; height:100%; float:left; background-color:rgb(233,255,233)">
+					<h1 id='input_title' style='margin-left:30px'>Input place</h1>
+					<textarea id='input_textarea' style='resize:none; font-family:"Courier New",Courier,monospace'></textarea>
+				</div>
+				<div id="code_panel" style="background-color:rgb(255,233,233); height:100%; float:right; width:50%">
+					<h1 style='margin-left:30px'>Code place</h1>
+					<textarea id='code_textarea' style='resize:none; font-family:"Courier New",Courier,monospace'></textarea>
+				</div>
+				<div style="width: 100%; clear:both"></div>
+			</div>
+			<div id='bottom' style='background-color:rgb(255,255,233)'>
+				<div id="style_opt" style="height:100%; float:left">
+					<p style='font-weight:bold'>Language:</p>
+					<div style='display:inline-block; width:150px'>
+						<input type="radio" name="style" value="c"/>C/C++
+					</div>
+					<div style='display:inline-block; width:150px'>
+						<input type="radio" name="style" value="matlab-cell"/>Matlab cell
+					</div>
+					<div style='display:inline-block; width:150px'>
+						<input type="radio" name="style" value="python" checked />Python
+					</div>
+				</div>
+				<div id="quote_opt" style="height:100%; float:left">
+					<p style='font-weight:bold'>Quote:</p>
+					<input type="radio" name="quote" value="yes" checked />With quote<br/>
+					<input type="radio" name="quote" value="no" />Without quote
+				</div>
+				<div id="indent_opt" style="height:100%; float:left">
+					<p style='font-weight:bold'>Indent:</p>
+					<input type="text" name="num_indents" value="4" style='width:40px' />
+					<select id='indent_type'>
+						<option value="space" selected>space(s)</option>
+						<option value="tab">tab(s)</option>
+					</select>
+				</div>
+				<div id="sure" style="height:100%; float:left">
+					<input type="submit" value='Render' style='font-size:20px; margin-top: 50px' onclick='render()'/>
+				</div>
+
+			</div>
+		</div>
+		<script>
+			regulate_size();
+		</script>
+	</body>
+</html> 
